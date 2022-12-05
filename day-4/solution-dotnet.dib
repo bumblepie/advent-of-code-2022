@@ -1,0 +1,55 @@
+#!csharp
+
+public record struct Assignment {
+    public int Min;
+    public int Max;
+}
+
+public Assignment ParseAssignment(string input) {
+    var segments = input.Split("-");
+    return new Assignment {
+        Min = int.Parse(segments[0]),
+        Max = int.Parse(segments[1]),
+    };
+}
+
+public bool FullyContains(Assignment first, Assignment second) {
+    var span = new Assignment {
+        Min = Math.Min(first.Min, second.Min),
+        Max = Math.Max(first.Max, second.Max),
+    };
+    return span == first || span == second;
+}
+
+public bool AnyOverlap(Assignment first, Assignment second) {
+    var span = new Assignment {
+        Min = Math.Max(first.Min, second.Min),
+        Max = Math.Min(first.Max, second.Max),
+    };
+    return span.Min <= span.Max;
+}
+
+#!csharp
+
+var lines = System.IO.File.ReadAllLines(@"input.txt");
+lines
+
+#!csharp
+
+lines.Select(line => line
+    .Split(",")
+    .Select(ParseAssignment)
+    .ToList()
+)
+.Where(assignments => FullyContains(assignments[0], assignments[1]))
+.Count()
+
+#!csharp
+
+lines.Select(line => line
+    .Split(",")
+    .Select(ParseAssignment)
+    .ToList()
+)
+.Where(assignments => AnyOverlap(assignments[0], assignments[1]))
+.Count()
