@@ -1,0 +1,46 @@
+#!csharp
+
+using System.Linq;
+var inputLines = System.IO.File.ReadLines(@"input.txt");
+
+var elves = ParseElves(inputLines);
+var maxCalories = elves.Select(elf => elf.Sum()).Max();
+System.Console.Out.WriteLine($"Part 1: Elf with max calories has {maxCalories} calories");
+
+// var topThree = elves.Select(elf => elf.Sum()).OrderByDescending(sum => sum).Take(3);
+var topThree = elves.Select(elf => elf.Sum()).Aggregate(
+    new List<int>(),
+    (topThree, nextElf) => {
+        if (topThree.Count < 3) {
+            topThree.Add(nextElf);
+            return topThree.OrderByDescending(elf => elf).ToList();
+        }
+        else if (nextElf > topThree[2]) {
+            topThree[2] = nextElf;
+            return topThree.OrderByDescending(elf => elf).ToList();
+        } else {
+            return topThree;
+        }
+    }
+);
+System.Console.Out.WriteLine($"Part 2: Top 3 elves have {topThree.Sum()} calories");
+
+IEnumerable<List<int>> ParseElves(IEnumerable<string> inputLines) {
+    var elves = new List<List<int>> ();
+    var currentElf = new List<int>();
+
+    foreach (var line in inputLines) {
+        if (String.IsNullOrEmpty(line)) {
+            elves.Add(currentElf);
+            currentElf = new List<int>();
+        } else {
+            var calories = int.Parse(line);
+            currentElf.Add(calories);
+        }
+    }
+
+    if (currentElf.Any()) {
+        elves.Append(currentElf);
+    }
+    return elves;
+}
