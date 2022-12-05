@@ -1,0 +1,135 @@
+#!csharp
+
+// Data Types and Functions
+public enum Choice {
+    Rock,
+    Paper,
+    Scissors,
+}
+
+Choice ParseChoice(string choice) {
+    return choice switch {
+        "A" or "X" => Choice.Rock,
+        "B" or "Y" => Choice.Paper,
+        "C" or "Z" => Choice.Scissors,
+        _ => throw new System.InvalidOperationException("Unknown choice"),
+    };
+}
+
+public record struct Part1Input {
+    public Choice OpponentChoice;
+    public Choice MyChoice;
+}
+
+Part1Input ParseLinePart1(string line) {
+    var sections = line.Split(" ");
+    return new Part1Input {
+        OpponentChoice = ParseChoice(sections[0]),
+        MyChoice = ParseChoice(sections[1]),
+    };
+}
+
+public enum MatchOutcome {
+    Win,
+    Draw,
+    Loss
+}
+
+MatchOutcome ParseMatchOutcome(string choice) {
+    return choice switch {
+        "X" => MatchOutcome.Loss,
+        "Y" => MatchOutcome.Draw,
+        "Z" => MatchOutcome.Win,
+        _ => throw new System.InvalidOperationException("Unknown match outcome"),
+    };
+}
+
+public record struct Part2Input {
+    public Choice OpponentChoice;
+    public MatchOutcome DesiredOutcome;
+}
+
+Part2Input ParseLinePart2(string line) {
+    var sections = line.Split(" ");
+    return new Part2Input {
+        OpponentChoice = ParseChoice(sections[0]),
+        DesiredOutcome = ParseMatchOutcome(sections[1]),
+    };
+}
+
+public record struct MatchResult {
+    public MatchOutcome Outcome;
+    public Choice MyChoice;
+}
+
+int Score(MatchResult result) {
+    var pickScore = result.MyChoice switch {
+        Choice.Rock => 1,
+        Choice.Paper => 2,
+        Choice.Scissors => 3,
+    };
+    var outcomeScore = result.Outcome switch {
+        MatchOutcome.Win => 6,
+        MatchOutcome.Draw => 3,
+        MatchOutcome.Loss => 0,
+    };
+    return pickScore + outcomeScore;
+}
+
+MatchResult PlayGame(Choice opponents, Choice mine) {
+    var outcome = (opponents, mine) switch {
+        (Choice.Rock, Choice.Rock) => MatchOutcome.Draw,
+        (Choice.Rock, Choice.Paper) => MatchOutcome.Win,
+        (Choice.Rock, Choice.Scissors) => MatchOutcome.Loss,
+
+        (Choice.Paper, Choice.Paper) => MatchOutcome.Draw,
+        (Choice.Paper, Choice.Scissors) => MatchOutcome.Win,
+        (Choice.Paper, Choice.Rock) => MatchOutcome.Loss,
+
+        (Choice.Scissors, Choice.Scissors) => MatchOutcome.Draw,
+        (Choice.Scissors, Choice.Rock) => MatchOutcome.Win,
+        (Choice.Scissors, Choice.Paper) => MatchOutcome.Loss,
+    };
+    return new MatchResult {
+        Outcome = outcome,
+        MyChoice = mine,
+    };
+}
+
+Choice ChoiceNeededForOutcome(Choice opponentChoice, MatchOutcome outcome) {
+    return (opponentChoice, outcome) switch {
+        (Choice.Rock, MatchOutcome.Win) => Choice.Paper,
+        (Choice.Rock, MatchOutcome.Draw) => Choice.Rock,
+        (Choice.Rock, MatchOutcome.Loss) => Choice.Scissors,
+
+        (Choice.Paper, MatchOutcome.Win) => Choice.Scissors,
+        (Choice.Paper, MatchOutcome.Draw) => Choice.Paper,
+        (Choice.Paper, MatchOutcome.Loss) => Choice.Rock,
+
+        (Choice.Scissors, MatchOutcome.Win) => Choice.Rock,
+        (Choice.Scissors, MatchOutcome.Draw) => Choice.Scissors,
+        (Choice.Scissors, MatchOutcome.Loss) => Choice.Paper,
+    };
+}
+
+#!csharp
+
+var lines = System.IO.File.ReadAllLines("input.txt");
+
+#!csharp
+
+//Part 1
+lines.Select(ParseLinePart1)
+    .Select(choices => PlayGame(choices.OpponentChoice, choices.MyChoice))
+    .Select(Score)
+    .Sum()
+    
+
+#!csharp
+
+// Part 2
+lines.Select(ParseLinePart2)
+    .Select(input => (input.OpponentChoice, ChoiceNeededForOutcome(input.OpponentChoice, input.DesiredOutcome)))
+    .Select(choices => PlayGame(choices.Item1, choices.Item2))
+    .Select(Score)
+    .Sum()
